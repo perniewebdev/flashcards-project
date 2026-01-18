@@ -1,21 +1,19 @@
+
 # Flashcards App
+A web app where users can make flashcards, study them and share them.  
+Works offline and saves your progress.
 
-A web app where users can make flashcards, study them, and share decks.  
-Works offline and saves progress.
+# Features
+- Make and manage flashcards (create, edit, delete)  
+- Study cards and track answers (flip cards, mark correct/incorrect)  
+- Share and copy decks from others  
+- Work offline (PWA)
 
-## Features
+# Tech & Tools
+- Express.js – backend server and REST-ish API (handles user, deck and card requests)
+- HTML, CSS, JavaScript – frontend client / PWA
+- npm – manages packages for client and server
+- PostgreSQL – cloud storage for users, decks, cards, and progress
 
-- Create, edit, delete flashcard decks  
-- Add, edit, delete cards (question + answer)  
-- Study mode (flip cards, mark correct/incorrect)  
-- Public decks and copy decks from others  
-- Offline support (PWA)  
-
-## Tech & Tools
-
-- **Express.js** – backend server and API  
-- **React / Vite** – frontend / PWA  
-- **npm** – manages packages  
-- **PostgreSQL** – saves users, decks, cards, progress  
-- **GitHub Projects / Trello** – tracks tasks  
-- **HTTP knowledge** – needed for API requests  
+# Project Management
+- Will use Excel to make sure I remember to include everything.
