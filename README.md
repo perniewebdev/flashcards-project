@@ -16,4 +16,5 @@ Works offline and saves your progress.
 - PostgreSQL – cloud storage for users, decks, cards, and progress
 
 # Project Management
-- Will use Excel to make sure I remember to include everything.
+- Will use Trello to organize and make sure I remember to include everything.
+Link to my Trello: https://trello.com/invite/b/696ceb29d8795f74de40eeac/ATTI807794d32e16cfd1397085dcce07346eB4724A26/flashcards-project
