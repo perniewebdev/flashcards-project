@@ -1,6 +1,6 @@
+
 const express = require("express");
 const cors = require("cors");
-
 const { deckAccessMiddleware } = require("./middleware/deck_access");
 
 const app = express();
@@ -21,35 +21,35 @@ app.post("/decks", (req, res) => {
   res.status(201).json({ id: 2, ...req.body });
 });
 
-app.get("/decks/:deckId", deckAccessMiddleware(getDeckById), (req, res) => {
+app.get("/decks/:deckId", deckAccessMiddleware(), (req, res) => {
   res.json({ id: req.params.deckId, name: "Sample Deck", visibility: "private" });
 });
 
-app.put("/decks/:deckId", deckAccessMiddleware(getDeckById), (req, res) => {
+app.put("/decks/:deckId", deckAccessMiddleware(), (req, res) => {
   res.json({ id: req.params.deckId, ...req.body });
 });
 
-app.delete("/decks/:deckId", deckAccessMiddleware(getDeckById), (req, res) => {
+app.delete("/decks/:deckId", deckAccessMiddleware(), (req, res) => {
   res.json({ message: `Deck ${req.params.deckId} deleted` });
 });
 
-app.get("/decks/:deckId/flashcards", deckAccessMiddleware(getDeckById), (req, res) => {
+app.get("/decks/:deckId/flashcards", deckAccessMiddleware(), (req, res) => {
   res.json([{ id: 1, question: "Q?", answer: "A" }]);
 });
 
-app.post("/decks/:deckId/flashcards", deckAccessMiddleware(getDeckById), (req, res) => {
+app.post("/decks/:deckId/flashcards", deckAccessMiddleware(), (req, res) => {
   res.status(201).json({ id: 2, ...req.body });
 });
 
-app.get("/decks/:deckId/flashcards/:id", deckAccessMiddleware(getDeckById), (req, res) => {
+app.get("/decks/:deckId/flashcards/:id", deckAccessMiddleware(), (req, res) => {
   res.json({ id: req.params.id, question: "Q?", answer: "A" });
 });
 
-app.put("/decks/:deckId/flashcards/:id", deckAccessMiddleware(getDeckById), (req, res) => {
+app.put("/decks/:deckId/flashcards/:id", deckAccessMiddleware(), (req, res) => {
   res.json({ id: req.params.id, ...req.body });
 });
 
-app.delete("/decks/:deckId/flashcards/:id", deckAccessMiddleware(getDeckById), (req, res) => {
+app.delete("/decks/:deckId/flashcards/:id", deckAccessMiddleware(), (req, res) => {
   res.json({ message: `Flashcard ${req.params.id} deleted` });
 });
 

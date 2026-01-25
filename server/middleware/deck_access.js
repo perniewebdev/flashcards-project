@@ -1,6 +1,9 @@
 
-export function deckAccessMiddleware(getDeckById) {
+function deckAccessMiddleware(getDeckById) {
   return async function (req, res, next) {
+
+    if (!getDeckById) return next();
+
     const { deckId } = req.params;
     const userId = req.user?.id;
 
@@ -25,3 +28,5 @@ export function deckAccessMiddleware(getDeckById) {
     next();
   };
 }
+
+module.exports = { deckAccessMiddleware };
