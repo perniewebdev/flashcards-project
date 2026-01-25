@@ -19,47 +19,56 @@ Works offline and saves your progress.
 
 
 # Project Management
-- Will use Trello to organize and make sure I remember to include everything.
+Will use Trello to organize and make sure I remember to include everything.
 Link to my Trello: https://trello.com/invite/b/696ceb29d8795f74de40eeac/ATTI807794d32e16cfd1397085dcce07346eB4724A26/flashcards-project
 
 
 # Decks
 
-GET /decks**  
+GET /decks
 Returns a list of all decks.
+Response: 200 OK
 
-POST /decks**  
+POST /decks
 Creates a new deck.
+Response: 201 Created
 
-GET /decks/:deckId**  
-Returns a single deck by its ID.
+GET /decks/:deckId
+Returns a deck by ID.
+Response: 200 OK
 
-PUT /decks/:deckId**  
-Updates an existing deck.
+PUT /decks/:deckId
+Updates a deck.
+Response: 200 OK
 
-DELETE /decks/:deckId**  
+DELETE /decks/:deckId
 Deletes a deck.
+Response: 200 OK
 
 
 # Flashcards
 
-GET /decks/:deckId/flashcards**  
-Returns all flashcards belonging to a deck.
+GET /decks/:deckId/flashcards
+Returns all flashcards in a deck.
+Response: 200 OK
 
-POST /decks/:deckId/flashcards**  
+POST /decks/:deckId/flashcards
 Creates a new flashcard in a deck.
+Response: 201 Created
 
-GET /decks/:deckId/flashcards/:id**  
-Returns a single flashcard by ID.
+GET /decks/:deckId/flashcards/:id
+Returns flashcard by ID.
+Response: 200 OK
 
-PUT /decks/:deckId/flashcards/:id**  
+PUT /decks/:deckId/flashcards/:id
 Updates a flashcard.
+Response: 200 OK
 
-DELETE /decks/:deckId/flashcards/:id**  
+DELETE /decks/:deckId/flashcards/:id
 Deletes a flashcard.
+Response: 200 OK
 
 
 # Testing
 
-The API is tested using Postman (or Insomnia).  
-All endpoints are included in an exported collection located in:
+The API is tested using Postman. The export is in the api_test folder.
