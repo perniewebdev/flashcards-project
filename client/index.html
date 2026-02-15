@@ -1,35 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flashcards Project</title>
-  </head>
-  <body>
-    <h1>Flashcards Project</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Client App</title>
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
 
-    <h2>Create account</h2>
-    <form id="signup-form">
-      <input type="email" id="email" placeholder="Email" required />
-      <br />
-      <input type="password" id="password" placeholder="Password" required />
-      <br />
+    <user-view></user-view>
 
-      <label>
-        <input type="checkbox" id="consent" />
-        I agree to the
-        <a href="/TOS.md" target="_blank">Terms of Service</a>
-        and
-        <a href="/PRIVACY.md" target="_blank">Privacy Policy</a>
-      </label>
-      <br />
+    <script type="module" src="./app.mjs"></script>
 
-      <button type="submit" id="signup-btn" disabled>Create account</button>
-    </form>
-
-    <h2>Account</h2>
-    <button id="delete-account">Delete account</button>
-
-    <script src="project.js"></script>
-  </body>
+</body>
 </html>

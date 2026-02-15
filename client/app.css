@@ -1,0 +1,7 @@
+
+.user-container { max-width: 400px; margin: auto; font-family: sans-serif; }
+form { margin-bottom: 1rem; display: flex; flex-direction: column; }
+input { margin: 0.5rem 0; padding: 0.5rem; }
+button { margin: 0.5rem 0; padding: 0.5rem; cursor: pointer; }
+.policy-buttons { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.policy { border: 1px solid #ccc; padding: 1rem; margin-top: 0.5rem; }

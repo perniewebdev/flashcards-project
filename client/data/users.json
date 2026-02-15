@@ -1,0 +1,15 @@
+
+[
+  {
+    "id": 1,
+    "email": "test@example.com",
+    "password": "hashedpassword",
+    "consent": true
+  },
+  {
+    "id": 2,
+    "email": "hello@flashcards.com",
+    "password": "hashedpassword",
+    "consent": true
+  }
+]
