@@ -1,32 +1,38 @@
 
-let users = [];
+let users = []
+let token = null
 
 export default class UserModel {
 
-  static async loadUsers() {
-    const res = await fetch("./data/users.json");
-    users = await res.json();
-    return users;
+  static async request(endpoint, method = "GET", body = null, auth = false) {
+    const headers = { "Content-Type": "application/json" }
+    if (auth && token) headers["Authorization"] = "Bearer " + token
+
+    const res = await fetch(endpoint, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null
+    })
+
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+    const data = await res.json()
+    if (endpoint.endsWith("/auth/login")) token = data.token
+    return data
   }
 
-  static async createUser(email, password) {
-    const newUser = { email, password };
-    users.push(newUser);
-    return newUser;
+  static async createUser(email, password, acceptToS) {
+    return this.request("/users", "POST", { email, password, acceptToS })
   }
 
-  static async updateUser(email, password) {
-    if (users.length === 0) return null;
-    users[0] = { email, password };
-    return users[0];
+  static async login(email, password) {
+    return this.request("/auth/login", "POST", { email, password }, false)
   }
 
   static async deleteUser() {
-    users = [];
-    return true;
+    return this.request("/users/me", "DELETE", null, true)
   }
 
-  static getUsers() {
-    return users;
+  static getToken() {
+    return token
   }
 }
