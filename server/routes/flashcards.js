@@ -1,54 +1,36 @@
 
 const express = require("express");
-const router = express.Router({ mergeParams: true });
-const { flashcards, generateId } = require("../store");
+const router = express.Router();
+const crypto = require("crypto");
+const pool = require("../database");
 
-router.get("/", (req, res) => {
-  const deckCards = [...flashcards.values()]
-    .filter(fc => fc.deckId === req.deck.id);
-  res.json(deckCards);
+router.post("/:deckId/flashcards", async (req, res) => {
+  const { question, answer } = req.body;
+  const { deckId } = req.params;
+
+  if (!question || !answer)
+    return res.status(400).json({ error: "Missing fields" });
+
+  const id = crypto.randomUUID();
+
+  await pool.query(
+    `INSERT INTO flashcards (id, question, answer, deck_id)
+     VALUES ($1, $2, $3, $4)`,
+    [id, question, answer, deckId]
+  );
+
+  res.status(201).json({ id });
 });
 
-router.post("/", (req, res) => {
-  const id = generateId();
+router.get("/:deckId/flashcards", async (req, res) => {
+  const { deckId } = req.params;
 
-  const flashcard = {
-    id,
-    deckId: req.deck.id,
-    question: req.body.question,
-    answer: req.body.answer
-  };
+  const result = await pool.query(
+    "SELECT * FROM flashcards WHERE deck_id = $1",
+    [deckId]
+  );
 
-  flashcards.set(id, flashcard);
-  res.status(201).json(flashcard);
-});
-
-router.get("/:id", (req, res) => {
-  const flashcard = flashcards.get(req.params.id);
-  if (!flashcard || flashcard.deckId !== req.deck.id)
-    return res.status(404).json({ error: "Not found" });
-
-  res.json(flashcard);
-});
-
-router.put("/:id", (req, res) => {
-  const flashcard = flashcards.get(req.params.id);
-  if (!flashcard || flashcard.deckId !== req.deck.id)
-    return res.status(404).json({ error: "Not found" });
-
-  flashcard.question = req.body.question ?? flashcard.question;
-  flashcard.answer = req.body.answer ?? flashcard.answer;
-
-  res.json(flashcard);
-});
-
-router.delete("/:id", (req, res) => {
-  const flashcard = flashcards.get(req.params.id);
-  if (!flashcard || flashcard.deckId !== req.deck.id)
-    return res.status(404).json({ error: "Not found" });
-
-  flashcards.delete(req.params.id);
-  res.json({ message: "Flashcard deleted" });
+  res.json(result.rows);
 });
 
 module.exports = router;

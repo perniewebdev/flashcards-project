@@ -1,40 +1,67 @@
 
 const express = require("express");
 const router = express.Router();
-const { users, sessions, hashPassword, generateId } = require("../store");
-const { authMiddleware } = require("../middleware/auth");
+const crypto = require("crypto");
+const pool = require("../database");
 
-router.post("/", (req, res) => {
+function hashPassword(password) {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+router.post("/", async (req, res) => {
   const { email, password, acceptToS } = req.body;
+  if (!email || !password || acceptToS !== true)
+    return res.status(400).json({ error: "Email, password and consent required" });
 
+  const client = await pool.connect();
+  try {
+    const existing = await client.query("SELECT * FROM users WHERE email=$1", [email]);
+    if (existing.rows.length > 0)
+      return res.status(409).json({ error: "Email already in use" });
+
+    const id = crypto.randomUUID();
+    await client.query(
+      `INSERT INTO users (id, email, password_hash, consent_accepted_at, created_at)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, email, hashPassword(password), new Date(), new Date()]
+    );
+
+    res.status(201).json({ id });
+  } finally {
+    client.release();
+  }
+});
+
+router.delete("/me", async (req, res) => {
+  const userId = req.headers["x-user-id"];
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+  const client = await pool.connect();
+  try {
+    await client.query("DELETE FROM users WHERE id=$1", [userId]);
+    res.json({ message: "User deleted" });
+  } finally {
+    client.release();
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: "Email and password required" });
 
-  if (acceptToS !== true)
-    return res.status(400).json({ error: "Terms must be accepted" });
+  const client = await pool.connect();
+  try {
+    const result = await client.query("SELECT * FROM users WHERE email=$1", [email]);
+    const user = result.rows[0];
+    if (!user || user.password_hash !== hashPassword(password))
+      return res.status(401).json({ error: "Invalid credentials" });
 
-  for (const user of users.values()) {
-    if (user.email === email)
-      return res.status(409).json({ error: "Email already in use" });
+    const token = crypto.randomUUID();
+    res.json({ token, userId: user.id });
+  } finally {
+    client.release();
   }
-
-  const userId = generateId();
-
-  users.set(userId, {
-    id: userId,
-    email,
-    passwordHash: hashPassword(password),
-    consentAcceptedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString()
-  });
-
-  res.status(201).json({ id: userId });
-});
-
-router.delete("/me", authMiddleware, (req, res) => {
-  users.delete(req.user.id);
-  sessions.delete(req.token);
-  res.json({ message: "User deleted" });
 });
 
 module.exports = router;
