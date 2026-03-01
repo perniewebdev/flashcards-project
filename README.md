@@ -72,3 +72,7 @@ Response: 200 OK
 # Testing
 
 The API is tested using Postman. The export is in the api_test folder.
+
+# Database
+The backend API is on Render:  
+https://flashcards-project.onrender.com
