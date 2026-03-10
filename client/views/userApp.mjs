@@ -11,7 +11,7 @@ export class UserView extends HTMLElement {
     this.shadow.appendChild(this.container)
   }
 
-  refresh() {
+  render() {
     this.container.innerHTML = `
       <form id="signup-form">
         <input id="email" type="email" placeholder="Email" required>

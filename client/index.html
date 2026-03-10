@@ -1,16 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Client App</title>
-    <link rel="stylesheet" href="./app.css">
-</head>
-<body>
-
-    <user-view></user-view>
+    <link rel="stylesheet" href="./app.css" />
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+  </head>
+  <body>
+    <main>
+      <user-view></user-view>
+    </main>
 
     <script type="module" src="./app.mjs"></script>
 
-</body>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./serviceWorker.mjs");
+        });
+      }
+    </script>
+  </body>
 </html>

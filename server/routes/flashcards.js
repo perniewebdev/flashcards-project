@@ -3,13 +3,17 @@ const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const pool = require("../database");
+const { msg } = require("../i18n/messages");
 
 router.post("/:deckId/flashcards", async (req, res) => {
   const { question, answer } = req.body;
   const { deckId } = req.params;
 
-  if (!question || !answer)
-    return res.status(400).json({ error: "Missing fields" });
+  if (!question)
+    return res.status(400).json(msg(req, "questionRequired"));
+
+  if (!answer)
+    return res.status(400).json(msg(req, "answerRequired"));
 
   const id = crypto.randomUUID();
 

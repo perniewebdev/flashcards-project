@@ -3,13 +3,17 @@ const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const pool = require("../database");
+const { msg } = require("../i18n/messages");
 
 router.post("/", async (req, res) => {
   const { title } = req.body;
   const userId = req.headers["x-user-id"];
 
-  if (!title || !userId)
-    return res.status(400).json({ error: "Title and user required" });
+  if (!title)
+    return res.status(400).json(msg(req, "deckTitleRequired"));
+
+  if (!userId)
+    return res.status(401).json(msg(req, "unauthorized"));
 
   const client = await pool.connect();
 
@@ -31,7 +35,9 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   const userId = req.headers["x-user-id"];
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+  if (!userId)
+    return res.status(401).json(msg(req, "unauthorized"));
 
   const result = await pool.query(
     "SELECT * FROM decks WHERE user_id = $1",

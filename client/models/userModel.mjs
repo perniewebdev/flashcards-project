@@ -14,9 +14,13 @@ export default class UserModel {
       body: body ? JSON.stringify(body) : null
     })
 
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`)
-    const data = await res.json()
-    if (endpoint.endsWith("/auth/login")) token = data.token
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null)
+      throw new Error(errorData?.error || `Request failed: ${res.status}`)
+    }
+
+    const data = await res.json().catch(() => null)
+    if (endpoint.endsWith("/auth/login") && data?.token) token = data.token
     return data
   }
 
