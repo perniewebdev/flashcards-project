@@ -1,9 +1,11 @@
 
-const { decks } = require("../store");
+const pool = require("../database");
 
-function deckAccessMiddleware(req, res, next) {
+async function deckAccessMiddleware(req, res, next) {
   const { deckId } = req.params;
-  const deck = decks.get(deckId);
+
+  const result = await pool.query("SELECT * FROM decks WHERE id = $1", [deckId]);
+  const deck = result.rows[0];
 
   if (!deck) return res.status(404).json({ error: "Deck not found" });
 
@@ -16,7 +18,7 @@ function deckAccessMiddleware(req, res, next) {
     return res.status(401).json({ error: "Authentication required" });
   }
 
-  if (deck.ownerId !== req.user.id) {
+  if (deck.user_id !== req.user.id) {
     return res.status(403).json({ error: "Access denied" });
   }
 

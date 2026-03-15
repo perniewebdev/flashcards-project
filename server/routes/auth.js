@@ -11,30 +11,26 @@ function hashPassword(password) {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password)
-    return res.status(400).json(msg(req, "emailPasswordRequired"));
+    return res.status(400).json(msg(req, "emailRequired"));
 
   const client = await pool.connect();
-
   try {
     const result = await client.query(
-      "SELECT * FROM users WHERE email=$1",
+      "SELECT * FROM users WHERE email = $1",
       [email]
     );
-
     const user = result.rows[0];
-
     if (!user || user.password_hash !== hashPassword(password))
       return res.status(401).json(msg(req, "invalidCredentials"));
 
     const token = crypto.randomUUID();
+    await client.query(
+      "INSERT INTO sessions (token, user_id) VALUES ($1, $2)",
+      [token, user.id]
+    );
 
-    res.json({
-      token,
-      userId: user.id
-    });
-
+    res.json({ token, userId: user.id });
   } finally {
     client.release();
   }

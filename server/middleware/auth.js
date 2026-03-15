@@ -1,21 +1,23 @@
 
-const { sessions, users } = require("../store")
+const pool = require("../database");
 
-function authMiddleware(req, res, next) {
-  const header = req.headers.authorization
-  if (!header) return res.status(401).json({ error: "Missing auth header" })
+async function authMiddleware(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header) return res.status(401).json({ error: "Missing auth header" });
 
-  const token = header.replace("Bearer ", "")
-  const userId = sessions.get(token)
+  const token = header.replace("Bearer ", "");
 
-  if (!userId) return res.status(401).json({ error: "Invalid or expired session" })
+  const result = await pool.query(
+    "SELECT users.* FROM sessions JOIN users ON sessions.user_id = users.id WHERE sessions.token = $1",
+    [token]
+  );
 
-  const user = users.get(userId)
-  if (!user) return res.status(401).json({ error: "User no longer exists" })
+  const user = result.rows[0];
+  if (!user) return res.status(401).json({ error: "Invalid or expired session" });
 
-  req.user = user
-  req.token = token
-  next()
+  req.user = user;
+  req.token = token;
+  next();
 }
 
-module.exports = { authMiddleware }
+module.exports = { authMiddleware };

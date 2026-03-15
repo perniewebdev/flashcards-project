@@ -1,78 +1,71 @@
-
 # Flashcards App
-A web app where users can make flashcards, study them and share them.  
+A web app where users can make flashcards, study them and share them.
 Works offline and saves your progress.
 
-
-# Features
-- Make and manage flashcards (create, edit, delete)  
-- Study cards and track answers (flip cards, mark correct/incorrect)  
-- Share and copy decks from others  
+## Features
+- Make and manage flashcards (create, edit, delete)
+- Study cards and track answers (flip cards, mark correct/incorrect)
+- Share and copy decks from others
 - Work offline (PWA)
 
-
-# Tech & Tools
-- Express.js – backend server and REST-ish API (handles user, deck and card requests)
+## Tech & Tools
+- Express.js – backend server and REST API
 - HTML, CSS, JavaScript – frontend client / PWA
-- npm – manages packages for client and server
-- PostgreSQL – cloud storage for users, decks, cards, and progress
+- PostgreSQL – cloud database on Render
+- npm – package management
 
+## Project Management
+Trello: https://trello.com/invite/b/696ceb29d8795f74de40eeac/ATTI807794d32e16cfd1397085dcce07346eB4724A26/flashcards-project
 
-# Project Management
-Will use Trello to organize and make sure I remember to include everything.
-Link to my Trello: https://trello.com/invite/b/696ceb29d8795f74de40eeac/ATTI807794d32e16cfd1397085dcce07346eB4724A26/flashcards-project
+## Middleware
 
+### authMiddleware
+**Problem it solves:** Protected routes need to verify who the user is before
+allowing access. Without this, anyone could read or modify any user's data.
 
-# Decks
+**How it works:**
+- Reads the `Authorization: Bearer <token>` header from the request
+- Looks up the token in the sessions table in the database
+- If valid, attaches the user object to `req.user` for use in route handlers
+- Returns 401 if the token is missing or invalid
 
-GET /decks
-Returns a list of all decks.
-Response: 200 OK
+**Used on:** POST /decks, GET /decks, POST /decks/:deckId/flashcards,
+GET /decks/:deckId/flashcards, DELETE /users/me
 
-POST /decks
-Creates a new deck.
-Response: 201 Created
+---
 
-GET /decks/:deckId
-Returns a deck by ID.
-Response: 200 OK
+### deckAccessMiddleware
+**Problem it solves:** Decks can be public or private. Public decks should
+be readable by anyone, but private decks should only be accessible by
+their owner.
 
-PUT /decks/:deckId
-Updates a deck.
-Response: 200 OK
+**How it works:**
+- Reads `deckId` from the URL parameters
+- Fetches the deck from the database
+- If the deck is public, grants access to any user
+- If the deck is private, checks that the logged in user is the owner
+- Returns 404 if the deck does not exist, 401 if not logged in, 403 if not the owner
+- Attaches the deck object to `req.deck` for use in the route handler
 
-DELETE /decks/:deckId
-Deletes a deck.
-Response: 200 OK
+**Used on:** GET /decks/:deckId/flashcards, POST /decks/:deckId/flashcards
 
+## API
 
-# Flashcards
+### Auth
+POST /auth/login – Log in, returns token
 
-GET /decks/:deckId/flashcards
-Returns all flashcards in a deck.
-Response: 200 OK
+### Users
+POST /users – Create account
+DELETE /users/me – Delete own account (requires login)
 
-POST /decks/:deckId/flashcards
-Creates a new flashcard in a deck.
-Response: 201 Created
+### Decks
+GET /decks – Get all your decks (requires login)
+POST /decks – Create a deck (requires login)
 
-GET /decks/:deckId/flashcards/:id
-Returns flashcard by ID.
-Response: 200 OK
+### Flashcards
+GET /decks/:deckId/flashcards – Get all flashcards in a deck
+POST /decks/:deckId/flashcards – Add a flashcard to a deck
 
-PUT /decks/:deckId/flashcards/:id
-Updates a flashcard.
-Response: 200 OK
-
-DELETE /decks/:deckId/flashcards/:id
-Deletes a flashcard.
-Response: 200 OK
-
-
-# Testing
-
-The API is tested using Postman. The export is in the api_test folder.
-
-# Database
-The backend API is on Render:  
+## Database
+Backend API hosted on Render:
 https://flashcards-project.onrender.com

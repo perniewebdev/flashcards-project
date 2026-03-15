@@ -4,6 +4,7 @@ const router = express.Router();
 const crypto = require("crypto");
 const pool = require("../database");
 const { msg } = require("../i18n/messages");
+const { authMiddleware } = require("../middleware/auth");
 
 function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -11,68 +12,42 @@ function hashPassword(password) {
 
 router.post("/", async (req, res) => {
   const { email, password, acceptToS } = req.body;
-
-  if (!email || !password || acceptToS !== true)
-    return res.status(400).json(msg(req, "consentRequired"));
+  if (!email || typeof email !== "string")
+    return res.status(400).json(msg(req, "emailRequired"));
+  if (!password || typeof password !== "string")
+    return res.status(400).json(msg(req, "passwordRequired"));
+  if (password.length < 8)
+    return res.status(400).json(msg(req, "passwordTooShort"));
+  if (acceptToS !== true)
+    return res.status(400).json(msg(req, "tosRequired"));
 
   const client = await pool.connect();
-
   try {
     const existing = await client.query(
-      "SELECT * FROM users WHERE email=$1",
+      "SELECT * FROM users WHERE email = $1",
       [email]
     );
-
     if (existing.rows.length > 0)
-      return res.status(409).json(msg(req, "usernameTaken"));
+      return res.status(409).json(msg(req, "emailTaken"));
 
     const id = crypto.randomUUID();
-
     await client.query(
       `INSERT INTO users (id, email, password_hash, consent_accepted_at, created_at)
        VALUES ($1, $2, $3, $4, $5)`,
       [id, email, hashPassword(password), new Date(), new Date()]
     );
-
     res.status(201).json({ id });
   } finally {
     client.release();
   }
 });
 
-router.delete("/me", async (req, res) => {
-  const userId = req.headers["x-user-id"];
-  if (!userId) return res.status(401).json(msg(req, "unauthorized"));
-
+router.delete("/me", authMiddleware, async (req, res) => {
   const client = await pool.connect();
-
   try {
-    await client.query("DELETE FROM users WHERE id=$1", [userId]);
-    res.json({ message: msg(req, "accountDeleted").error });
-  } finally {
-    client.release();
-  }
-});
-
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json(msg(req, "usernameRequired"));
-
-  const client = await pool.connect();
-
-  try {
-    const result = await client.query(
-      "SELECT * FROM users WHERE email=$1",
-      [email]
-    );
-
-    const user = result.rows[0];
-    if (!user || user.password_hash !== hashPassword(password))
-      return res.status(401).json(msg(req, "wrongCredentials"));
-
-    const token = crypto.randomUUID();
-    res.json({ token, userId: user.id });
+    await client.query("DELETE FROM sessions WHERE user_id = $1", [req.user.id]);
+    await client.query("DELETE FROM users WHERE id = $1", [req.user.id]);
+    res.json({ message: "Account deleted" });
   } finally {
     client.release();
   }

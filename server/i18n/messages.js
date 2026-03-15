@@ -9,16 +9,13 @@ const messages = {
     emailTaken: "Email is already in use.",
     invalidCredentials: "Invalid email or password.",
     unauthorized: "Unauthorized.",
-
     deckNotFound: "Deck not found.",
     deckTitleRequired: "Deck title is required.",
     flashcardNotFound: "Flashcard not found.",
     questionRequired: "Question is required.",
     answerRequired: "Answer is required.",
-
     serverError: "An unexpected error occurred."
   },
-
   no: {
     emailRequired: "E-post er påkrevd og må være en tekst.",
     passwordRequired: "Passord er påkrevd og må være en tekst.",
@@ -28,13 +25,11 @@ const messages = {
     emailTaken: "E-post er allerede i bruk.",
     invalidCredentials: "Feil e-post eller passord.",
     unauthorized: "Ikke autorisert.",
-
     deckNotFound: "Kortstokk ble ikke funnet.",
     deckTitleRequired: "Tittel på kortstokk er påkrevd.",
     flashcardNotFound: "Flashcard ble ikke funnet.",
     questionRequired: "Spørsmål er påkrevd.",
     answerRequired: "Svar er påkrevd.",
-
     serverError: "En uventet feil oppstod."
   }
 };
