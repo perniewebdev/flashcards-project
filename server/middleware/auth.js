@@ -1,14 +1,15 @@
+import pool from "../database.js";
 
-const pool = require("../database");
-
-async function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ error: "Missing auth header" });
 
-  const token = header.replace("Bearer ", "");
+  const token = header.replace("Bearer ", "").trim();
 
   const result = await pool.query(
-    "SELECT users.* FROM sessions JOIN users ON sessions.user_id = users.id WHERE sessions.token = $1",
+    `SELECT users.* FROM sessions
+     JOIN users ON sessions.user_id = users.id
+     WHERE sessions.token = $1`,
     [token]
   );
 
@@ -19,5 +20,3 @@ async function authMiddleware(req, res, next) {
   req.token = token;
   next();
 }
-
-module.exports = { authMiddleware };

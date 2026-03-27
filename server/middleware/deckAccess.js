@@ -1,11 +1,8 @@
+import decksStore from "../storage/deckStore.js";
 
-const pool = require("../database");
-
-async function deckAccessMiddleware(req, res, next) {
+export async function deckAccessMiddleware(req, res, next) {
   const { deckId } = req.params;
-
-  const result = await pool.query("SELECT * FROM decks WHERE id = $1", [deckId]);
-  const deck = result.rows[0];
+  const deck = await decksStore.findById(deckId);
 
   if (!deck) return res.status(404).json({ error: "Deck not found" });
 
@@ -14,16 +11,10 @@ async function deckAccessMiddleware(req, res, next) {
     return next();
   }
 
-  if (!req.user) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
+  if (!req.user) return res.status(401).json({ error: "Authentication required" });
 
-  if (deck.user_id !== req.user.id) {
-    return res.status(403).json({ error: "Access denied" });
-  }
+  if (deck.userId !== req.user.id) return res.status(403).json({ error: "Access denied" });
 
   req.deck = deck;
   next();
 }
-
-module.exports = { deckAccessMiddleware };

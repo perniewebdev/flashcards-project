@@ -1,14 +1,10 @@
+import { Router } from "express";
+import usersStore from "../storage/userStore.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { hashPassword, verifyPassword } from "./auth.js";
+import { msg } from "../i18n/messages.js";
 
-const express = require("express");
-const router = express.Router();
-const crypto = require("crypto");
-const pool = require("../database");
-const { msg } = require("../i18n/messages");
-const { authMiddleware } = require("../middleware/auth");
-
-function hashPassword(password) {
-  return crypto.createHash("sha256").update(password).digest("hex");
-}
+const router = Router();
 
 router.post("/", async (req, res) => {
   const { email, password, acceptToS } = req.body;
@@ -21,36 +17,52 @@ router.post("/", async (req, res) => {
   if (acceptToS !== true)
     return res.status(400).json(msg(req, "tosRequired"));
 
-  const client = await pool.connect();
-  try {
-    const existing = await client.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-    if (existing.rows.length > 0)
-      return res.status(409).json(msg(req, "emailTaken"));
+  const existing = await usersStore.findByEmail(email);
+  if (existing) return res.status(409).json(msg(req, "emailTaken"));
 
-    const id = crypto.randomUUID();
-    await client.query(
-      `INSERT INTO users (id, email, password_hash, consent_accepted_at, created_at)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [id, email, hashPassword(password), new Date(), new Date()]
-    );
-    res.status(201).json({ id });
-  } finally {
-    client.release();
-  }
+  const hash = await hashPassword(password);
+  const user = await usersStore.createUser(email, hash, new Date(), new Date());
+  return res.status(201).json({ id: user.id });
 });
 
 router.delete("/me", authMiddleware, async (req, res) => {
-  const client = await pool.connect();
-  try {
-    await client.query("DELETE FROM sessions WHERE user_id = $1", [req.user.id]);
-    await client.query("DELETE FROM users WHERE id = $1", [req.user.id]);
-    res.json({ message: "Account deleted" });
-  } finally {
-    client.release();
-  }
+  const ok = await usersStore.deleteUser(req.user.id);
+  if (!ok) return res.sendStatus(404);
+  return res.sendStatus(204);
 });
 
-module.exports = router;
+router.patch("/me/email", authMiddleware, async (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== "string")
+    return res.status(400).json(msg(req, "emailRequired"));
+  const existing = await usersStore.findByEmail(email);
+  if (existing) return res.status(409).json(msg(req, "emailTaken"));
+  const ok = await usersStore.updateEmail(req.user.id, email);
+  if (!ok) return res.sendStatus(404);
+  return res.sendStatus(200);
+});
+
+router.patch("/me/password", authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword)
+    return res.status(400).json(msg(req, "passwordRequired"));
+  if (newPassword.length < 8)
+    return res.status(400).json(msg(req, "passwordTooShort"));
+
+  const user = await usersStore.findById(req.user.id);
+
+  let valid = false;
+  try {
+    valid = await verifyPassword(currentPassword, user.passwordHash);
+  } catch {
+    return res.status(401).json(msg(req, "invalidCredentials"));
+  }
+  if (!valid) return res.status(401).json(msg(req, "invalidCredentials"));
+
+  const hash = await hashPassword(newPassword);
+  const ok = await usersStore.updatePassword(req.user.id, hash);
+  if (!ok) return res.sendStatus(404);
+  return res.sendStatus(200);
+});
+
+export default router;

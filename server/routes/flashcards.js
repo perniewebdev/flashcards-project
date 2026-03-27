@@ -1,40 +1,29 @@
+import { Router } from "express";
+import flashcardsStore from "../storage/flashcardStore.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { deckAccessMiddleware } from "../middleware/deckAccess.js";
+import { msg } from "../i18n/messages.js";
 
-const express = require("express");
-const router = express.Router();
-const crypto = require("crypto");
-const pool = require("../database");
-const { msg } = require("../i18n/messages");
+const router = Router({ mergeParams: true });
 
-router.post("/:deckId/flashcards", async (req, res) => {
+router.get("/", authMiddleware, deckAccessMiddleware, async (req, res) => {
+  const flashcards = await flashcardsStore.findByDeckId(req.deck.id);
+  return res.json(flashcards);
+});
+
+router.post("/", authMiddleware, deckAccessMiddleware, async (req, res) => {
   const { question, answer } = req.body;
-  const { deckId } = req.params;
+  if (!question) return res.status(400).json(msg(req, "questionRequired"));
+  if (!answer) return res.status(400).json(msg(req, "answerRequired"));
 
-  if (!question)
-    return res.status(400).json(msg(req, "questionRequired"));
-
-  if (!answer)
-    return res.status(400).json(msg(req, "answerRequired"));
-
-  const id = crypto.randomUUID();
-
-  await pool.query(
-    `INSERT INTO flashcards (id, question, answer, deck_id)
-     VALUES ($1, $2, $3, $4)`,
-    [id, question, answer, deckId]
-  );
-
-  res.status(201).json({ id });
+  const flashcard = await flashcardsStore.createFlashcard(question, answer, req.deck.id);
+  return res.status(201).json({ id: flashcard.id });
 });
 
-router.get("/:deckId/flashcards", async (req, res) => {
-  const { deckId } = req.params;
-
-  const result = await pool.query(
-    "SELECT * FROM flashcards WHERE deck_id = $1",
-    [deckId]
-  );
-
-  res.json(result.rows);
+router.delete("/:flashcardId", authMiddleware, deckAccessMiddleware, async (req, res) => {
+  const ok = await flashcardsStore.deleteFlashcard(req.params.flashcardId);
+  if (!ok) return res.sendStatus(404);
+  return res.sendStatus(204);
 });
 
-module.exports = router;
+export default router;

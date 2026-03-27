@@ -1,4 +1,3 @@
-
 import UserModel from "../models/userModel.mjs"
 import { t } from "../i18n/translations.mjs"
 
@@ -54,14 +53,14 @@ export class AppView extends HTMLElement {
     list.innerHTML = this.decks.map(deck => `
       <div class="deck-card" data-id="${deck.id}">
         <span>${deck.title}</span>
-        <button class="study-btn secondary" data-id="${deck.id}">${t("study")}</button>
+        <button class="study-btn" data-id="${deck.id}">${t("study")}</button>
         <button class="delete-deck-btn danger" data-id="${deck.id}">${t("deleteDeck")}</button>
       </div>
     `).join("")
 
     this.shadow.querySelectorAll(".study-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        this.dispatchEvent(new CustomEvent("study-deck", {
+        this.dispatchEvent(new CustomEvent("open-deck", {
           composed: true, bubbles: true,
           detail: { deckId: btn.dataset.id }
         }))
@@ -69,7 +68,8 @@ export class AppView extends HTMLElement {
     })
 
     this.shadow.querySelectorAll(".delete-deck-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", async e => {
+        e.stopPropagation()
         try {
           await UserModel.deleteDeck(btn.dataset.id)
           await this.loadDecks()
